@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stronghold Siege: Baron's Blight</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Stronghold Siege: Baron's Blight</h1>
+    
+    <div id="gameState" class="status-board">Zustand: Frieden (Produktion)</div>
+
+    <div class="hud-container">
+        <div class="resource">Holz: <span id="res-wood">0</span></div>
+        <div class="resource">Stein: <span id="res-stone">0</span></div>
+        <div class="resource">Nahrung: <span id="res-food">0</span></div>
+    </div>
+
+    <div class="buildings-container">
+        <div class="building-card">
+            <h3>Holzfäller-Hütte (Lvl <span id="lvl-woodcutter">1</span>)</h3>
+            <p>Generiert Rohholz.</p>
+            <p>Kosten für Upgrade: <span id="cost-woodcutter">10</span> Holz</p>
+            <button class="btn" onclick="game.upgradeBuilding('woodcutter')">Upgrade</button>
+        </div>
+        
+        <div class="building-card">
+            <h3>Steinmetz-Hof (Lvl <span id="lvl-mason">1</span>)</h3>
+            <p>Generiert Steinquader.</p>
+            <p>Kosten für Upgrade: <span id="cost-mason">15</span> Stein</p>
+            <button class="btn" onclick="game.upgradeBuilding('mason')">Upgrade</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

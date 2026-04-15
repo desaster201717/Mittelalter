@@ -15,7 +15,6 @@
 
   <div id="hud">
 
-```
 <!-- Top Resource Bar -->
 <div id="resourceBar">
   <div class="res" id="r-rawWood">  <span class="ri">🪵</span><span class="rn">Rohholz</span>  <span class="rv" id="rv-rawWood">0</span></div>
@@ -38,19 +37,19 @@
 <div id="prioConsole" class="panel hidden">
   <div class="panel-title">⚠ DEKRET DES BAUMEISTERS</div>
   <div id="prioSlots">
-    <div class="pslot" data-slot="0">
+    <div class="pslot" id="pslot-0" data-slot="0">
       <div class="ppct">70 %</div>
       <div class="plabel">PRIO 1</div>
       <div class="ptarget" id="pt-0">— leer —</div>
       <div class="php-wrap"><div class="php-bar" id="pb-0" style="width:100%"></div></div>
     </div>
-    <div class="pslot" data-slot="1">
+    <div class="pslot" id="pslot-1" data-slot="1">
       <div class="ppct">20 %</div>
       <div class="plabel">PRIO 2</div>
       <div class="ptarget" id="pt-1">— leer —</div>
       <div class="php-wrap"><div class="php-bar" id="pb-1" style="width:100%"></div></div>
     </div>
-    <div class="pslot" data-slot="2">
+    <div class="pslot" id="pslot-2" data-slot="2">
       <div class="ppct">10 %</div>
       <div class="plabel">PRIO 3</div>
       <div class="ptarget" id="pt-2">— leer —</div>
@@ -60,7 +59,7 @@
   <div id="boostRow">
     <button class="boost-btn" id="btn-eimer" title="Stoppt Mauerreparatur, löscht Brände 3× schneller (−50 Nahrung)">🪣 Alle an die Eimer!</button>
     <button class="boost-btn" id="btn-steine" title="Sofort +25% Mauer-HP (verbraucht 1 Kleingebäude)">🧱 Notfall-Steine!</button>
-    <button class="boost-btn" id="btn-kriegsrat" title="Alle Türme +50% DPS für 20s (−30 Waffe — ab Welle 5)">⚔ Kriegsrat!</button>
+    <button class="boost-btn" id="btn-kriegsrat" title="Alle Türme +50% DPS für 20s (−30 Gold — ab Welle 5)">⚔ Kriegsrat!</button>
   </div>
 </div>
 
@@ -90,7 +89,6 @@
 
 <!-- Message Log -->
 <div id="msgLog"></div>
-```
 
   </div><!-- /hud -->
 

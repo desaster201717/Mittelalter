@@ -1,39 +1,117 @@
 <!DOCTYPE html>
+
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stronghold Siege: Baron's Blight</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stronghold Siege: Baron's Blight</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="app">
+  <canvas id="gameCanvas"></canvas>
 
-    <h1>Stronghold Siege: Baron's Blight</h1>
-    
-    <div id="gameState" class="status-board">Zustand: Frieden (Produktion)</div>
+  <!-- ── HUD OVERLAY ── -->
 
-    <div class="hud-container">
-        <div class="resource">Holz: <span id="res-wood">0</span></div>
-        <div class="resource">Stein: <span id="res-stone">0</span></div>
-        <div class="resource">Nahrung: <span id="res-food">0</span></div>
+  <div id="hud">
+
+```
+<!-- Top Resource Bar -->
+<div id="resourceBar">
+  <div class="res" id="r-rawWood">  <span class="ri">🪵</span><span class="rn">Rohholz</span>  <span class="rv" id="rv-rawWood">0</span></div>
+  <div class="res" id="r-rawStone"> <span class="ri">🪨</span><span class="rn">Rohstein</span> <span class="rv" id="rv-rawStone">0</span></div>
+  <div class="res" id="r-food">     <span class="ri">🍞</span><span class="rn">Nahrung</span>   <span class="rv" id="rv-food">0</span></div>
+  <div class="res" id="r-lumber">   <span class="ri">📦</span><span class="rn">Bauholz</span>   <span class="rv" id="rv-lumber">0</span></div>
+  <div class="res" id="r-stoneBlock"><span class="ri">🧱</span><span class="rn">Quader</span>    <span class="rv" id="rv-stoneBlock">0</span></div>
+  <div class="res" id="r-gold">     <span class="ri">💰</span><span class="rn">Gold</span>      <span class="rv" id="rv-gold">0</span></div>
+</div>
+
+<!-- Wave Status -->
+<div id="wavePanel">
+  <div id="waveTitle">⚔ BARONSCHAFT</div>
+  <div id="waveNum">Welle <span id="wNumVal">0</span> / 10</div>
+  <div id="waveCountdown">Angriff in <span id="wSecVal">60</span>s</div>
+  <div id="phaseTag" class="phase-peace">FRIEDEN</div>
+</div>
+
+<!-- Priority Console (active during siege) -->
+<div id="prioConsole" class="panel hidden">
+  <div class="panel-title">⚠ DEKRET DES BAUMEISTERS</div>
+  <div id="prioSlots">
+    <div class="pslot" data-slot="0">
+      <div class="ppct">70 %</div>
+      <div class="plabel">PRIO 1</div>
+      <div class="ptarget" id="pt-0">— leer —</div>
+      <div class="php-wrap"><div class="php-bar" id="pb-0" style="width:100%"></div></div>
     </div>
-
-    <div class="buildings-container">
-        <div class="building-card">
-            <h3>Holzfäller-Hütte (Lvl <span id="lvl-woodcutter">1</span>)</h3>
-            <p>Generiert Rohholz.</p>
-            <p>Kosten für Upgrade: <span id="cost-woodcutter">10</span> Holz</p>
-            <button class="btn" onclick="game.upgradeBuilding('woodcutter')">Upgrade</button>
-        </div>
-        
-        <div class="building-card">
-            <h3>Steinmetz-Hof (Lvl <span id="lvl-mason">1</span>)</h3>
-            <p>Generiert Steinquader.</p>
-            <p>Kosten für Upgrade: <span id="cost-mason">15</span> Stein</p>
-            <button class="btn" onclick="game.upgradeBuilding('mason')">Upgrade</button>
-        </div>
+    <div class="pslot" data-slot="1">
+      <div class="ppct">20 %</div>
+      <div class="plabel">PRIO 2</div>
+      <div class="ptarget" id="pt-1">— leer —</div>
+      <div class="php-wrap"><div class="php-bar" id="pb-1" style="width:100%"></div></div>
     </div>
+    <div class="pslot" data-slot="2">
+      <div class="ppct">10 %</div>
+      <div class="plabel">PRIO 3</div>
+      <div class="ptarget" id="pt-2">— leer —</div>
+      <div class="php-wrap"><div class="php-bar" id="pb-2" style="width:100%"></div></div>
+    </div>
+  </div>
+  <div id="boostRow">
+    <button class="boost-btn" id="btn-eimer" title="Stoppt Mauerreparatur, löscht Brände 3× schneller (−50 Nahrung)">🪣 Alle an die Eimer!</button>
+    <button class="boost-btn" id="btn-steine" title="Sofort +25% Mauer-HP (verbraucht 1 Kleingebäude)">🧱 Notfall-Steine!</button>
+    <button class="boost-btn" id="btn-kriegsrat" title="Alle Türme +50% DPS für 20s (−30 Waffe — ab Welle 5)">⚔ Kriegsrat!</button>
+  </div>
+</div>
 
-    <script src="game.js"></script>
+<!-- Building Info Panel -->
+<div id="bldgPanel" class="panel hidden">
+  <button id="bldgClose">✕</button>
+  <div id="bldgIcon">🏰</div>
+  <div id="bldgName">Gebäude</div>
+  <div id="bldgLevel">Stufe 1</div>
+  <div id="hpWrap"><div id="hpFill"></div></div>
+  <div id="hpText">HP: —</div>
+  <div id="bldgStatus"></div>
+  <hr class="divider">
+  <div id="bldgUpgrade">
+    <div id="bldgCostText"></div>
+    <button id="btn-upgrade">⬆ Ausbauen</button>
+  </div>
+  <hr class="divider">
+  <div id="prioAssign">
+    <div class="pa-label">Reparatur-Prio:</div>
+    <button class="pa-btn" data-p="0">PRIO 1</button>
+    <button class="pa-btn" data-p="1">PRIO 2</button>
+    <button class="pa-btn" data-p="2">PRIO 3</button>
+    <button class="pa-btn" data-p="-1">Keine</button>
+  </div>
+</div>
+
+<!-- Message Log -->
+<div id="msgLog"></div>
+```
+
+  </div><!-- /hud -->
+
+  <!-- Game Over / Victory Screen -->
+
+  <div id="overlay" class="hidden">
+    <div id="overlayBox">
+      <div id="overlayTitle">NIEDERLAGE</div>
+      <div id="overlayBody"></div>
+      <div id="overlayStats"></div>
+      <button id="btn-restart">⚔ Neue Baronschaft beginnen</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script src="js/config.js"></script>
+
+<script src="js/game.js"></script>
+
+<script src="js/main.js"></script>
+
 </body>
 </html>

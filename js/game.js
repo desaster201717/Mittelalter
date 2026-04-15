@@ -1,24 +1,23 @@
-‘use strict’;
+'use strict';
 /* =====================================================
-STRONGHOLD SIEGE — js/game.js
+STRONGHOLD SIEGE -- js/game.js
 Game state, update logic, isometric renderer
 ===================================================== */
 
 // ═══════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════
-let G = null; // global game state — initialised in main.js
+let G = null; // global game state -- initialised in main.js
 
 function createState() {
 return {
-phase:     ‘PEACE’,   // PEACE | WARNING | SIEGE | VICTORY | DEFEAT
+phase:     'PEACE',   // PEACE | WARNING | SIEGE | VICTORY | DEFEAT
 waveNum:   0,
 waveTimer: WAVE_INTERVAL,
 warnTimer: 0,
 spawnQueue:[],        // {type, delay} bandits pending spawn
 spawnTimer:0,
 
-```
 resources: { rawWood:30, rawStone:20, food:50, lumber:5, stoneBlock:3, gold:20 },
 caps:      { rawWood:120, rawStone:100, food:180, lumber:60, stoneBlock:48, gold:600 },
 
@@ -43,7 +42,6 @@ _cartId: 0,
 _bandId: 0,
 _partId: 0,
 _projId: 0,
-```
 
 };
 }
@@ -52,7 +50,7 @@ _projId: 0,
 // UPDATE  (called each frame, dt in seconds)
 // ═══════════════════════════════════════════════════════
 function update(dt) {
-if (!G || G.phase === ‘VICTORY’ || G.phase === ‘DEFEAT’) return;
+if (!G || G.phase === 'VICTORY' || G.phase === 'DEFEAT') return;
 
 updateWaveTimer(dt);
 updateProduction(dt);
@@ -68,21 +66,21 @@ updateBoostTimers(dt);
 checkDefeat();
 }
 
-// ── Wave timer ──────────────────────────────────────────
+// -- Wave timer ------------------------------------------
 function updateWaveTimer(dt) {
-if (G.phase === ‘PEACE’) {
+if (G.phase === 'PEACE') {
 G.waveTimer -= dt;
 if (G.waveTimer <= PRE_SIEGE_WARN && G.waveTimer > 0) {
-G.phase = ‘WARNING’;
-addMsg(‘⚠ Banditen gesichtet! Bereite dich vor!’, ‘warn’);
+G.phase = 'WARNING';
+addMsg('⚠ Banditen gesichtet! Bereite dich vor!', 'warn');
 }
 if (G.waveTimer <= 0) startWave();
 }
-if (G.phase === ‘WARNING’) {
+if (G.phase === 'WARNING') {
 G.waveTimer -= dt;
 if (G.waveTimer <= 0) startWave();
 }
-if (G.phase === ‘SIEGE’) {
+if (G.phase === 'SIEGE') {
 // Check wave cleared
 if (G.bandits.length === 0 && G.spawnQueue.length === 0 && G.spawnTimer <= 0) {
 endWave();
@@ -92,7 +90,7 @@ endWave();
 
 function startWave() {
 G.waveNum++;
-G.phase = ‘SIEGE’;
+G.phase = 'SIEGE';
 G.waveTimer = 0;
 
 const idx = Math.min(G.waveNum - 1, WAVES.length - 1);
@@ -106,25 +104,25 @@ delay += 0.8 + Math.random() * 0.6;
 }
 }
 G.spawnTimer = 0;
-addMsg(`⚔ Welle ${G.waveNum}/${TOTAL_WAVES} beginnt!`, ‘alert’);
+addMsg(`⚔ Welle ${G.waveNum}/${TOTAL_WAVES} beginnt!`, 'alert');
 }
 
 function endWave() {
 G.stats.wavesCleared++;
 const goldReward = G.waveNum * 8 + 10;
 G.resources.gold = Math.min(G.caps.gold, G.resources.gold + goldReward);
-addMsg(`✓ Welle ${G.waveNum} überstanden! +${goldReward} Gold`, ‘good’);
+addMsg(`✓ Welle ${G.waveNum} überstanden! +${goldReward} Gold`, 'good');
 
 if (G.waveNum >= TOTAL_WAVES) {
-G.phase = ‘VICTORY’;
+G.phase = 'VICTORY';
 } else {
-G.phase = ‘PEACE’;
+G.phase = 'PEACE';
 G.waveTimer = WAVE_INTERVAL;
 G.priSlots = [null, null, null];
 }
 }
 
-// ── Spawn bandits from queue ─────────────────────────────
+// -- Spawn bandits from queue -----------------------------
 function spawnPendingBandits(dt) {
 if (G.spawnQueue.length === 0) return;
 G.spawnTimer -= dt;
@@ -139,7 +137,7 @@ function spawnBandit(type) {
 const def = BNDDEF[type];
 const spread = SPAWN_SPREAD[G._bandId % SPAWN_SPREAD.length];
 G.bandits.push({
-id:       ‘b’ + G._bandId++,
+id:       'b' + G._bandId++,
 type,
 tx:       8 + spread,
 ty:       16.5,
@@ -148,20 +146,19 @@ maxHp:    def.hp,
 spd:      def.spd,
 wpIdx:    0,                   // current waypoint index
 atkTimer: 0,
-state:    ‘moving’,            // moving | attacking | dead
+state:    'moving',            // moving | attacking | dead
 targetId: null,
 reachedGate: false,
 });
 }
 
-// ── Production ─────────────────────────────────────────
+// -- Production -----------------------------------------
 function updateProduction(dt) {
 for (const b of G.buildings) {
 const def = BDEF[b.type];
-if (def.category !== ‘production’ && def.category !== ‘special’) continue;
+if (def.category !== 'production' && def.category !== 'special') continue;
 if (!b.active || b.burning) continue;
 
-```
 const res = def.produces;
 if (!res) continue;
 if (G.resources[res] >= G.caps[res]) continue;
@@ -172,19 +169,17 @@ G.stats.totalProduced += rate * dt;
 
 // Spawn a cart occasionally for visual feedback
 if (Math.random() < dt * 0.4) spawnVisualCart(b, 'storage');
-```
 
 }
 }
 
-// ── Refineries ─────────────────────────────────────────
+// -- Refineries -----------------------------------------
 function updateRefineries(dt) {
 for (const b of G.buildings) {
 const def = BDEF[b.type];
-if (def.category !== ‘refinery’) continue;
+if (def.category !== 'refinery') continue;
 if (!b.active || b.burning) continue;
 
-```
 b.timer -= dt;
 if (b.timer > 0) continue;
 
@@ -210,20 +205,18 @@ b.timer = def.procTime / speedMult;
 
 // Visual cart
 spawnVisualCart(b, 'storage');
-```
 
 }
 }
 
-// ── Bandit movement & actions ───────────────────────────
+// -- Bandit movement & actions ---------------------------
 function updateBandits(dt) {
 spawnPendingBandits(dt);
 
-for (let i = G.bandits.length - 1; i >= 0; i–) {
+for (let i = G.bandits.length - 1; i >= 0; i--) {
 const bn = G.bandits[i];
-if (bn.state === ‘dead’) { G.bandits.splice(i, 1); continue; }
+if (bn.state === 'dead') { G.bandits.splice(i, 1); continue; }
 
-```
 const def = BNDDEF[bn.type];
 
 // Arsonist special: find nearest non-wall building and move toward it
@@ -306,7 +299,6 @@ if (def.special === 'sapper' && !bn.reachedGate) {
     }
   }
 }
-```
 
 }
 }
@@ -325,8 +317,8 @@ spawnHitParticle(building.tx, building.ty);
 
 if (building.hp <= 0) {
 building.active = false;
-addMsg(`💥 ${BDEF[building.type].name} wurde zerstört!`, ‘alert’);
-bandit.state = ‘moving’;
+addMsg(`💥 ${BDEF[building.type].name} wurde zerstört!`, 'alert');
+bandit.state = 'moving';
 bandit.wpIdx++;
 }
 }
@@ -334,7 +326,7 @@ bandit.wpIdx++;
 function findNearestWall(bandit) {
 let nearest = null, nearDist = 3.5;
 for (const b of G.buildings) {
-if (b.type !== ‘WALL’ || b.hp <= 0) continue;
+if (b.type !== 'WALL' || b.hp <= 0) continue;
 const dist = Math.hypot(b.tx - bandit.tx, b.ty - bandit.ty);
 if (dist < nearDist) { nearDist = dist; nearest = b; }
 }
@@ -350,7 +342,7 @@ function setFire(building, duration) {
 building.burning = true;
 building.burnTimer = duration;
 building.active = false;
-addMsg(`🔥 ${BDEF[building.type].name} steht in Flammen!`, ‘alert’);
+addMsg(`🔥 ${BDEF[building.type].name} steht in Flammen!`, 'alert');
 spawnFireParticles(building.tx, building.ty);
 }
 
@@ -362,22 +354,21 @@ if (b.burnTimer <= 0) {
 b.burning = false;
 b.active = true;
 b.hp = Math.max(1, Math.floor(b.maxHp * 0.25)); // survives at 25%
-addMsg(`🚒 ${BDEF[b.type].name} – Feuer gelöscht!`, ‘good’);
+addMsg(`🚒 ${BDEF[b.type].name} - Feuer gelöscht!`, 'good');
 }
 }
 }
 
-// ── Tower auto-attack ───────────────────────────────────
+// -- Tower auto-attack -----------------------------------
 function updateTowers(dt) {
 const dpsBoost = G.kriegsratTimer > 0 ? 1.5 : 1.0;
 
 for (const b of G.buildings) {
-if (b.type !== ‘TOWER’ || b.hp <= 0) continue;
+if (b.type !== 'TOWER' || b.hp <= 0) continue;
 const def = BDEF.TOWER;
 const range = def.range + def.rangePerLvl * (b.level - 1);
 const dps   = (def.dps + def.dpsPerLvl * (b.level - 1)) * dpsBoost;
 
-```
 b.atkTimer = (b.atkTimer || 0) - dt;
 if (b.atkTimer > 0) continue;
 
@@ -401,25 +392,24 @@ if (target) {
     goldReward(BNDDEF[target.type]);
   }
 }
-```
 
 }
 }
 
-// ── Priority Repair ─────────────────────────────────────
+// -- Priority Repair -------------------------------------
 function updateRepairs(dt) {
-if (G.phase !== ‘SIEGE’ && G.phase !== ‘WARNING’) return;
+if (G.phase !== 'SIEGE' && G.phase !== 'WARNING') return;
 
 const pcts = [0.70, 0.20, 0.10];
 for (let slot = 0; slot < 3; slot++) {
 const id = G.priSlots[slot];
 if (!id) continue;
 
-```
 const bldg = G.buildings.find(b => b.id === id);
 if (!bldg || bldg.hp >= bldg.maxHp || bldg.burning) continue;
 
 const def    = BDEF[bldg.type];
+if (def.category !== 'defense') continue;
 const resKey = def.repairRes;
 if (!resKey) continue;
 if ((G.resources[resKey] || 0) <= 0) continue;
@@ -433,16 +423,15 @@ bldg.hp = Math.min(bldg.maxHp, bldg.hp + rate);
 // Update priority slot HP bar
 const fill = document.getElementById('pb-' + slot);
 if (fill) fill.style.width = (bldg.hp / bldg.maxHp * 100) + '%';
-```
 
 }
 }
 
-// ── Carts (visual only) ─────────────────────────────────
+// -- Carts (visual only) ---------------------------------
 let _cartSpawnCooldown = 0;
 function updateCarts(dt) {
 _cartSpawnCooldown -= dt;
-for (let i = G.carts.length - 1; i >= 0; i–) {
+for (let i = G.carts.length - 1; i >= 0; i--) {
 const c = G.carts[i];
 c.progress += dt / c.duration;
 if (c.progress >= 1) { G.carts.splice(i, 1); }
@@ -450,31 +439,31 @@ if (c.progress >= 1) { G.carts.splice(i, 1); }
 }
 
 function spawnVisualCart(fromBldg, toBldgId) {
-const toB = G.buildings.find(b => b.id === toBldgId || b.type === ‘STORAGE’);
+const toB = G.buildings.find(b => b.id === toBldgId || b.type === 'STORAGE');
 if (!toB) return;
 G.carts.push({
-id: ‘c’ + G._cartId++,
+id: 'c' + G._cartId++,
 fx: fromBldg.tx, fy: fromBldg.ty,
 tx: toB.tx + (Math.random()-0.5)*0.4,
 ty: toB.ty + (Math.random()-0.5)*0.4,
 progress: 0,
 duration: 2.5 + Math.random(),
-col: ‘#d4a820’,
+col: '#d4a820',
 });
 }
 
-// ── Particles ───────────────────────────────────────────
+// -- Particles -------------------------------------------
 function spawnHitParticle(tx, ty) {
 for (let i = 0; i < 5; i++) {
 G.particles.push({
-id: ‘p’ + G._partId++,
+id: 'p' + G._partId++,
 tx: tx + (Math.random()-0.5)*0.5,
 ty: ty + (Math.random()-0.5)*0.5,
 vy: -0.04 - Math.random()*0.04,
 vx: (Math.random()-0.5)*0.06,
 life: 0.5 + Math.random()*0.3,
 maxLife: 0.8,
-col: ‘#e08040’,
+col: '#e08040',
 size: 3 + Math.random()*3,
 });
 }
@@ -483,21 +472,21 @@ size: 3 + Math.random()*3,
 function spawnFireParticles(tx, ty) {
 for (let i = 0; i < 12; i++) {
 G.particles.push({
-id: ‘p’ + G._partId++,
+id: 'p' + G._partId++,
 tx: tx + (Math.random()-0.5)*0.7,
 ty: ty + (Math.random()-0.5)*0.7,
 vy: -0.08 - Math.random()*0.06,
 vx: (Math.random()-0.5)*0.04,
 life: 1.0 + Math.random()*0.8,
 maxLife: 1.8,
-col: Math.random() > 0.5 ? ‘#ff6020’ : ‘#ffa020’,
+col: Math.random() > 0.5 ? '#ff6020' : '#ffa020',
 size: 4 + Math.random()*4,
 });
 }
 }
 
 function updateParticles(dt) {
-for (let i = G.particles.length - 1; i >= 0; i–) {
+for (let i = G.particles.length - 1; i >= 0; i--) {
 const p = G.particles[i];
 p.tx += p.vx;
 p.ty += p.vy;
@@ -506,10 +495,10 @@ if (p.life <= 0) G.particles.splice(i, 1);
 }
 }
 
-// ── Projectiles ─────────────────────────────────────────
+// -- Projectiles -----------------------------------------
 function spawnProjectile(tower, bandit) {
 G.projectiles.push({
-id: ‘j’ + G._projId++,
+id: 'j' + G._projId++,
 fx: tower.tx, fy: tower.ty,
 tx: bandit.tx, ty: bandit.ty,
 progress: 0, duration: 0.25,
@@ -517,14 +506,14 @@ progress: 0, duration: 0.25,
 }
 
 function updateProjectiles(dt) {
-for (let i = G.projectiles.length - 1; i >= 0; i–) {
+for (let i = G.projectiles.length - 1; i >= 0; i--) {
 const p = G.projectiles[i];
 p.progress += dt / p.duration;
 if (p.progress >= 1) G.projectiles.splice(i, 1);
 }
 }
 
-// ── Boost timers ────────────────────────────────────────
+// -- Boost timers ----------------------------------------
 function updateBoostTimers(dt) {
 for (const k of Object.keys(G.boostCooldowns)) {
 G.boostCooldowns[k] = Math.max(0, G.boostCooldowns[k] - dt);
@@ -532,32 +521,32 @@ G.boostCooldowns[k] = Math.max(0, G.boostCooldowns[k] - dt);
 G.kriegsratTimer = Math.max(0, G.kriegsratTimer - dt);
 }
 
-// ── Defeat check ────────────────────────────────────────
+// -- Defeat check ----------------------------------------
 function checkDefeat() {
-const gate = G.buildings.find(b => b.type === ‘GATE’);
-const hall = G.buildings.find(b => b.type === ‘GREAT_HALL’);
+const gate = G.buildings.find(b => b.type === 'GATE');
+const hall = G.buildings.find(b => b.type === 'GREAT_HALL');
 if ((gate && gate.hp <= 0 && !gate.active) || (hall && hall.hp <= 0)) {
-G.phase = ‘DEFEAT’;
+G.phase = 'DEFEAT';
 }
 }
 
-// ── Utility ─────────────────────────────────────────────
+// -- Utility ---------------------------------------------
 function isInsideWalls(tx, ty) {
 return tx > 4 && tx < 12 && ty > 4 && ty < 12;
 }
 
-// ── Upgrades ────────────────────────────────────────────
+// -- Upgrades --------------------------------------------
 function tryUpgrade(bldgId) {
 const b = G.buildings.find(x => x.id === bldgId);
 if (!b) return;
 const def  = BDEF[b.type];
-if (b.level >= def.maxLvl) { addMsg(‘Maximale Stufe erreicht!’, ‘warn’); return; }
+if (b.level >= def.maxLvl) { addMsg('Maximale Stufe erreicht!', 'warn'); return; }
 
 const cost = upgradeResources(b.type, b.level);
 // Check affordability
 for (const [res, amt] of Object.entries(cost)) {
 if ((G.resources[res] || 0) < amt) {
-addMsg(`Nicht genug ${RES_NAMES[res] || res}!`, ‘warn’);
+addMsg(`Nicht genug ${RES_NAMES[res] || res}!`, 'warn');
 return;
 }
 }
@@ -567,40 +556,40 @@ for (const [res, amt] of Object.entries(cost)) G.resources[res] -= amt;
 b.level++;
 b.maxHp = def.baseHp + (def.hpPerLvl || 0) * b.level;
 b.hp    = Math.min(b.hp + (def.hpPerLvl || 0), b.maxHp);
-addMsg(`✓ ${def.name} → Stufe ${b.level}`, ‘good’);
+addMsg(`✓ ${def.name} -> Stufe ${b.level}`, 'good');
 }
 
-// ── Boost actions ────────────────────────────────────────
+// -- Boost actions ----------------------------------------
 function activateEimer() {
-if (G.boostCooldowns.eimer > 0) return addMsg(‘Boost noch nicht bereit!’, ‘warn’);
-if (G.resources.food < 50)       return addMsg(‘Nicht genug Nahrung! (−50🍞)’, ‘warn’);
+if (G.boostCooldowns.eimer > 0) return addMsg('Boost noch nicht bereit!', 'warn');
+if (G.resources.food < 50)       return addMsg('Nicht genug Nahrung! (−50🍞)', 'warn');
 G.resources.food -= 50;
-// Extinguish all fires 3× faster (just instant for simplicity)
+// Extinguish all fires 3* faster (just instant for simplicity)
 for (const b of G.buildings) {
 if (b.burning) { b.burnTimer *= 0.33; }
 }
 G.priSlots[0] = null; // clears prio 1 (mauer reparatur pausiert)
 G.boostCooldowns.eimer = 90;
-addMsg(‘🪣 Alle an die Eimer! Brände werden gelöscht!’, ‘good’);
+addMsg('🪣 Alle an die Eimer! Brände werden gelöscht!', 'good');
 }
 
 function activateSteine() {
-if (G.boostCooldowns.steine > 0) return addMsg(‘Boost noch nicht bereit!’, ‘warn’);
-const gate = G.buildings.find(b => b.type === ‘GATE’);
+if (G.boostCooldowns.steine > 0) return addMsg('Boost noch nicht bereit!', 'warn');
+const gate = G.buildings.find(b => b.type === 'GATE');
 if (!gate) return;
 gate.hp = Math.min(gate.maxHp, gate.hp + gate.maxHp * 0.25);
 G.boostCooldowns.steine = 200;
-addMsg(‘🧱 Notfall-Steine! Burgtor +25% HP!’, ‘good’);
+addMsg('🧱 Notfall-Steine! Burgtor +25% HP!', 'good');
 }
 
 function activateKriegsrat() {
-if (G.boostCooldowns.kriegsrat > 0) return addMsg(‘Boost noch nicht bereit!’, ‘warn’);
-if (G.waveNum < 5) return addMsg(‘Kriegsrat erst ab Welle 5!’, ‘warn’);
-if ((G.resources.weapons || 0) < 30) return addMsg(‘Nicht genug Waffen! (−30⚔)’, ‘warn’);
-G.resources.weapons = (G.resources.weapons || 0) - 30;
+if (G.boostCooldowns.kriegsrat > 0) return addMsg('Boost noch nicht bereit!', 'warn');
+if (G.waveNum < 5) return addMsg('Kriegsrat erst ab Welle 5!', 'warn');
+if ((G.resources.gold || 0) < 30) return addMsg('Nicht genug Gold! (−30💰)', 'warn');
+G.resources.gold = (G.resources.gold || 0) - 30;
 G.kriegsratTimer     = 20;
 G.boostCooldowns.kriegsrat = 150;
-addMsg(‘⚔ Kriegsrat! Türme +50% DPS für 20s!’, ‘good’);
+addMsg('⚔ Kriegsrat! Türme +50% DPS für 20s!', 'good');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -610,7 +599,7 @@ let canvas, ctx;
 
 function initRenderer(c) {
 canvas = c;
-ctx    = c.getContext(‘2d’);
+ctx    = c.getContext('2d');
 }
 
 function render() {
@@ -619,8 +608,8 @@ ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 // Gradient sky background
 const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
-bg.addColorStop(0, ‘#1a2830’);
-bg.addColorStop(1, ‘#0a1008’);
+bg.addColorStop(0, '#1a2830');
+bg.addColorStop(1, '#0a1008');
 ctx.fillStyle = bg;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -633,7 +622,7 @@ drawParticles();
 drawUICanvas();
 }
 
-// ── Tile rendering ───────────────────────────────────────
+// -- Tile rendering ---------------------------------------
 function drawMap() {
 for (let d = 0; d < MAP_W + MAP_H - 1; d++) {
 for (let ty = 0; ty < MAP_H; ty++) {
@@ -658,15 +647,15 @@ ctx.lineTo(x - hw, y);
 ctx.closePath();
 ctx.fillStyle   = col.top;
 ctx.fill();
-ctx.strokeStyle = ‘rgba(0,0,0,0.18)’;
+ctx.strokeStyle = 'rgba(0,0,0,0.18)';
 ctx.lineWidth   = 0.6;
 ctx.stroke();
 }
 
-// ── Building rendering ────────────────────────────────────
+// -- Building rendering ------------------------------------
 function drawBuildingLayer() {
-// Sort by (tx+ty) for correct painter’s order
-const sorted = […G.buildings].sort((a, b) => (a.tx + a.ty) - (b.tx + b.ty));
+// Sort by (tx+ty) for correct painter's order
+const sorted = [...G.buildings].sort((a, b) => (a.tx + a.ty) - (b.tx + b.ty));
 for (const bldg of sorted) drawBuilding(bldg);
 }
 
@@ -684,7 +673,7 @@ const depth = def.depth + (b.level - 1) * 4;
 const fireMix = b.burning ? 0.5 + 0.3 * Math.sin(Date.now() * 0.006) : 0;
 
 function mixFire(hex) {
-return fireMix > 0 ? blendHex(hex, ‘#ff4010’, fireMix) : hex;
+return fireMix > 0 ? blendHex(hex, '#ff4010', fireMix) : hex;
 }
 
 // Low HP red tint
@@ -698,9 +687,9 @@ ctx.lineTo(x + hw, y - depth);
 ctx.lineTo(x,      y + hh - depth);
 ctx.lineTo(x - hw, y - depth);
 ctx.closePath();
-ctx.fillStyle   = mixFire(lowHp ? blendHex(col.top,’#cc1010’,0.25) : col.top);
+ctx.fillStyle   = mixFire(lowHp ? blendHex(col.top,'#cc1010',0.25) : col.top);
 ctx.fill();
-ctx.strokeStyle = ‘rgba(0,0,0,0.35)’;
+ctx.strokeStyle = 'rgba(0,0,0,0.35)';
 ctx.lineWidth   = 1;
 ctx.stroke();
 
@@ -711,7 +700,7 @@ ctx.lineTo(x + hw, y);
 ctx.lineTo(x,      y + hh);
 ctx.lineTo(x,      y + hh - depth);
 ctx.closePath();
-ctx.fillStyle = mixFire(lowHp ? blendHex(col.r,’#aa0808’,0.25) : col.r);
+ctx.fillStyle = mixFire(lowHp ? blendHex(col.r,'#aa0808',0.25) : col.r);
 ctx.fill();
 ctx.stroke();
 
@@ -722,7 +711,7 @@ ctx.lineTo(x - hw, y);
 ctx.lineTo(x,      y + hh);
 ctx.lineTo(x,      y + hh - depth);
 ctx.closePath();
-ctx.fillStyle = mixFire(lowHp ? blendHex(col.l,’#880606’,0.25) : col.l);
+ctx.fillStyle = mixFire(lowHp ? blendHex(col.l,'#880606',0.25) : col.l);
 ctx.fill();
 ctx.stroke();
 
@@ -734,62 +723,62 @@ drawHpBar(x, y - depth - 8, b.hp / b.maxHp, 32);
 // Priority indicator
 const priIdx = G.priSlots.indexOf(b.id);
 if (priIdx >= 0) {
-ctx.fillStyle = [’#e03020’,’#e09020’,’#e0c020’][priIdx];
-ctx.font = ‘bold 11px Cinzel, serif’;
-ctx.textAlign = ‘center’;
-ctx.fillText(‘P’ + (priIdx + 1), x, y - depth - 14);
+ctx.fillStyle = ['#e03020','#e09020','#e0c020'][priIdx];
+ctx.font = 'bold 11px Cinzel, serif';
+ctx.textAlign = 'center';
+ctx.fillText('P' + (priIdx + 1), x, y - depth - 14);
 }
 
 // Repair hammer icon
 if (G.priSlots.includes(b.id) && b.hp < b.maxHp) {
-ctx.font = ‘11px serif’;
-ctx.textAlign = ‘center’;
-ctx.fillText(‘🔨’, x, y - depth - 22);
+ctx.font = '11px serif';
+ctx.textAlign = 'center';
+ctx.fillText('🔨', x, y - depth - 22);
 }
 
 // Burning flame icon
 if (b.burning) {
-ctx.font = ‘13px serif’;
-ctx.textAlign = ‘center’;
-ctx.fillText(‘🔥’, x, y - depth - 18);
+ctx.font = '13px serif';
+ctx.textAlign = 'center';
+ctx.fillText('🔥', x, y - depth - 18);
 }
 }
 
 function drawHpBar(x, y, ratio, width) {
 const h = 4;
-ctx.fillStyle = ‘rgba(0,0,0,0.5)’;
+ctx.fillStyle = 'rgba(0,0,0,0.5)';
 ctx.fillRect(x - width/2, y, width, h);
-const col = ratio > 0.5 ? ‘#40c040’ : ratio > 0.25 ? ‘#d0a020’ : ‘#d02020’;
+const col = ratio > 0.5 ? '#40c040' : ratio > 0.25 ? '#d0a020' : '#d02020';
 ctx.fillStyle = col;
 ctx.fillRect(x - width/2, y, width * ratio, h);
 }
 
-// ── Carts ────────────────────────────────────────────────
+// -- Carts ------------------------------------------------
 function drawCarts() {
 for (const c of G.carts) {
 const tx = c.fx + (c.tx - c.fx) * c.progress;
 const ty = c.fy + (c.ty - c.fy) * c.progress;
 const {x, y} = toSc(tx, ty);
 ctx.fillStyle = c.col;
-ctx.shadowColor = ‘rgba(200,160,0,0.6)’;
+ctx.shadowColor = 'rgba(200,160,0,0.6)';
 ctx.shadowBlur  = 4;
 ctx.fillRect(x - 4, y - 5, 8, 5);
 ctx.shadowBlur = 0;
 // Wheels
-ctx.fillStyle = ‘#5a3010’;
+ctx.fillStyle = '#5a3010';
 ctx.fillRect(x - 4, y - 1, 3, 2);
 ctx.fillRect(x + 1,  y - 1, 3, 2);
 }
 }
 
-// ── Projectiles ──────────────────────────────────────────
+// -- Projectiles ------------------------------------------
 function drawProjectiles() {
 for (const p of G.projectiles) {
 const tx = p.fx + (p.tx - p.fx) * p.progress;
 const ty = p.fy + (p.ty - p.fy) * p.progress;
 const sc = toSc(tx, ty);
-ctx.fillStyle = ‘#e0c060’;
-ctx.shadowColor = ‘#ffee80’;
+ctx.fillStyle = '#e0c060';
+ctx.shadowColor = '#ffee80';
 ctx.shadowBlur  = 6;
 ctx.beginPath();
 ctx.arc(sc.x, sc.y - 10, 3, 0, Math.PI * 2);
@@ -798,15 +787,14 @@ ctx.shadowBlur = 0;
 }
 }
 
-// ── Bandits ──────────────────────────────────────────────
+// -- Bandits ----------------------------------------------
 function drawBandits() {
 for (const bn of G.bandits) {
-if (bn.state === ‘dead’) continue;
+if (bn.state === 'dead') continue;
 const def   = BNDDEF[bn.type];
 const {x, y} = toSc(bn.tx, bn.ty);
 const sz    = def.sz;
 
-```
 ctx.shadowColor = def.col;
 ctx.shadowBlur  = 8;
 
@@ -832,12 +820,11 @@ ctx.fillStyle = 'rgba(255,255,255,0.85)';
 ctx.font = `bold ${Math.floor(sz*0.75)}px monospace`;
 ctx.textAlign = 'center';
 ctx.fillText(bn.type[0], x, y - 8 + sz * 0.25);
-```
 
 }
 }
 
-// ── Particles ────────────────────────────────────────────
+// -- Particles --------------------------------------------
 function drawParticles() {
 for (const p of G.particles) {
 const {x, y} = toSc(p.tx, p.ty);
@@ -851,7 +838,7 @@ ctx.fill();
 ctx.globalAlpha = 1;
 }
 
-// ── Canvas UI overlays (hp text, selection ring) ──────────
+// -- Canvas UI overlays (hp text, selection ring) ----------
 function drawUICanvas() {
 // Selection ring
 if (G.selectedBldg) {
@@ -859,7 +846,7 @@ const b = G.buildings.find(x => x.id === G.selectedBldg);
 if (b) {
 const {x, y} = toSc(b.tx, b.ty);
 const hw = TILE_W / 2, hh = TILE_H / 2;
-ctx.strokeStyle = ‘#ffd060’;
+ctx.strokeStyle = '#ffd060';
 ctx.lineWidth = 2;
 ctx.setLineDash([4, 3]);
 ctx.beginPath();
@@ -874,20 +861,20 @@ ctx.setLineDash([]);
 }
 
 // Siege vignette
-if (G.phase === ‘SIEGE’) {
+if (G.phase === 'SIEGE') {
 const alpha = 0.06 + 0.04 * Math.sin(Date.now() * 0.003);
 const grad  = ctx.createRadialGradient(
 canvas.width/2, canvas.height/2, canvas.height * 0.3,
 canvas.width/2, canvas.height/2, canvas.height * 0.9,
 );
-grad.addColorStop(0, ‘rgba(180,0,0,0)’);
+grad.addColorStop(0, 'rgba(180,0,0,0)');
 grad.addColorStop(1, `rgba(180,0,0,${alpha})`);
 ctx.fillStyle = grad;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 }
 
-// ── Colour helpers ───────────────────────────────────────
+// -- Colour helpers ---------------------------------------
 function hexToRgb(hex) {
 const r = parseInt(hex.slice(1,3),16);
 const g = parseInt(hex.slice(3,5),16);
@@ -903,29 +890,29 @@ const b = Math.round(b1 + (b2-b1)*t);
 return `rgb(${r},${g},${b})`;
 }
 
-// ── Messages ─────────────────────────────────────────────
-function addMsg(text, type=‘info’) {
+// -- Messages ---------------------------------------------
+function addMsg(text, type='info') {
 G.messages.push({ text, type, ts: Date.now() });
 if (G.messages.length > 8) G.messages.shift();
 renderMessages();
 }
 
 function renderMessages() {
-const el = document.getElementById(‘msgLog’);
+const el = document.getElementById('msgLog');
 if (!el) return;
-el.innerHTML = ‘’;
+el.innerHTML = '';
 const recent = G.messages.slice(-5).reverse();
 for (const m of recent) {
-const div = document.createElement(‘div’);
-div.className = ’msg ’ + (m.type || ‘’);
+const div = document.createElement('div');
+div.className = 'msg ' + (m.type || '');
 div.textContent = m.text;
 el.appendChild(div);
 // Fade after 5s
-setTimeout(() => div.classList.add(‘fade’), 4500);
+setTimeout(() => div.classList.add('fade'), 4500);
 }
 }
 
-// ── Hit test: which building is at screen position? ──────
+// -- Hit test: which building is at screen position? ------
 function pickBuilding(sx, sy) {
 const {tx: rtx, ty: rty} = toTile(sx, sy);
 // Search nearby tiles (buildings can be slightly offset)
